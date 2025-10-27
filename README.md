@@ -5,7 +5,9 @@ This project sets up a distributed Apache Spark cluster using Docker, along with
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Python 3.10 exactly
+- **Python 3.10.19** (exact version required to match Docker containers)
+  - **For Arch Linux/Manjaro users**: See [PYTHON_SETUP_GUIDE.md](PYTHON_SETUP_GUIDE.md) for detailed installation instructions
+  - This guide can be adapted for other Linux distributions
 - Git
 
 ## Setup Instructions
