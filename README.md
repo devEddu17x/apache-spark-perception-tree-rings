@@ -16,7 +16,7 @@ This project sets up a distributed Apache Spark cluster using Docker, along with
 
 ```bash
 git clone <repository-url>
-cd apache-spark
+cd apache-spark-perception-tree-rings
 ```
 
 ### 2. Install Python Dependencies
