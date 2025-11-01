@@ -51,7 +51,19 @@ This script will:
 - Create a virtual environment (if not already created)
 - Install all project dependencies
 - Install and configure pre-commit hooks
-- Set up commit message validation
+- Set up commit message validation (enforces `feat:`, `fix:`, `docs:`, etc. format)
+
+#### Code Quality (Optional)
+
+The project includes Black and Flake8 linters (currently disabled in pre-commit). To run them manually:
+
+```bash
+source env/bin/activate
+black src/  # Format code
+flake8 src/  # Check code style
+```
+
+To enable automatic linting on commit, uncomment the linter sections in `.pre-commit-config.yaml`
 
 ### 4. Start the Spark Cluster
 
