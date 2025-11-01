@@ -9,6 +9,9 @@ This project sets up a distributed Apache Spark cluster using Docker, along with
   - **For Arch Linux/Manjaro users**: See [PYTHON_SETUP_GUIDE.md](PYTHON_SETUP_GUIDE.md) for detailed installation instructions
   - This guide can be adapted for other Linux distributions
 - Git
+- **Rclone** (optional, for accessing the R2 bucket)
+  - **For Arch Linux/Manjaro users**: See [RCLONE_SETUP_GUIDE.md](RCLONE_SETUP_GUIDE.md) for detailed installation and configuration
+  - Requires access credentials from the project administrator
 
 ## Setup Instructions
 
@@ -138,16 +141,41 @@ To stop the Spark cluster:
 docker compose down
 ```
 
+## Accessing the Dataset Storage (R2 Bucket)
+
+This project uses Cloudflare R2 for distributed dataset storage. Team members can access the bucket to:
+
+- Browse uploaded datasets
+- Download training data
+- Verify data processing results
+
+### Setup Rclone Access
+
+Follow the [RCLONE_SETUP_GUIDE.md](RCLONE_SETUP_GUIDE.md) for detailed instructions on:
+
+- Installing Rclone and Rclone Browser
+- Configuring access to the R2 bucket
+- Mounting the bucket as a local file system
+- Using the graphical browser interface
+
+**Note**: You'll need to request access credentials from the project administrator.
+
 ## Project Structure
 
 ```
 .
-├── docker-compose.yml      # Spark cluster configuration
-├── requirements.txt        # Python dependencies
-├── setup.sh               # Setup script for pre-commit hooks
-├── env/                   # Python virtual environment
-└── notebooks/             # Jupyter notebooks
-    └── test_spark.ipynb   # Example Spark application
+├── docker-compose.yml           # Spark cluster configuration
+├── requirements.txt             # Python dependencies
+├── setup.sh                     # Setup script for pre-commit hooks
+├── PYTHON_SETUP_GUIDE.md        # Python 3.10 installation guide
+├── RCLONE_SETUP_GUIDE.md        # Rclone configuration guide
+├── .pre-commit-config.yaml      # Pre-commit hooks configuration
+├── env/                         # Python virtual environment
+├── notebooks/                   # Jupyter notebooks
+│   └── test_spark.ipynb         # Example Spark application
+└── src/                         # Source code
+    └── bucket/                  # R2 bucket management scripts
+        └── cleaner.py           # Bucket cleanup utility
 ```
 
 ## Troubleshooting
