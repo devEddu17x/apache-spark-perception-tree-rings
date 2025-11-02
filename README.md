@@ -18,7 +18,7 @@ This project sets up a distributed Apache Spark cluster using Docker, along with
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/devEddu17x/apache-spark-perception-tree-rings
 cd apache-spark-perception-tree-rings
 ```
 
