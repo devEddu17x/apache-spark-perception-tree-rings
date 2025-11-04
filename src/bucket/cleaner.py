@@ -1,32 +1,11 @@
-import os
-import boto3
-from dotenv import load_dotenv
 import sys
 
-load_dotenv()
+from r2_config import get_r2_client, BUCKET_NAME
 
-# --- Configuration ---
-# Replace with your Cloudflare R2 credentials
-ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
-ACCESS_KEY = os.getenv("CLOUDFLARE_ACCESS_KEY")
-SECRET_KEY = os.getenv("CLOUDFLARE_SECRET_KEY")
-BUCKET_NAME = os.getenv("CLOUDFLARE_BUCKET_NAME")
-# ---------------------
-
-# Build the Endpoint URL
-ENDPOINT_URL = f"https://{ACCOUNT_ID}.r2.cloudflarestorage.com"
-
-# 1. Initialize Boto3 client
+# Initialize R2 client
 try:
-    s3_client = boto3.client(
-        "s3",
-        endpoint_url=ENDPOINT_URL,
-        aws_access_key_id=ACCESS_KEY,
-        aws_secret_access_key=SECRET_KEY,
-        region_name="auto",  # R2 prefers 'auto' or a valid region
-    )
+    s3_client = get_r2_client()
     print(f"Connected to R2. Starting to empty bucket: {BUCKET_NAME}\n")
-
 except Exception as e:
     print(f"Error connecting to R2: {e}")
     sys.exit(1)
