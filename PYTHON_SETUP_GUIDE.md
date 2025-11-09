@@ -1,6 +1,6 @@
 # Python 3.10 Setup Guide for Arch Linux / Manjaro
 
-This guide explains how to install and configure Python 3.10.19 on Arch Linux and Manjaro systems. This specific version is required to match the Python version used in the Spark Docker containers.
+This guide explains how to install and configure Python 3.10.13 on Arch Linux and Manjaro systems. This specific version is required to match the Python version used in the Spark Docker containers.
 
 ## Why Python 3.10?
 
@@ -16,22 +16,22 @@ The Apache Spark Docker images use Python 3.10, so your local development enviro
 yay -S pyenv
 ```
 
-### 2. Install Python 3.10.19
+### 2. Install Python 3.10.13
 
 Use pyenv to install the specific Python version:
 
 ```bash
-pyenv install 3.10.19
+pyenv install 3.10.13
 ```
 
 This may take a few minutes as it compiles Python from source.
 
-### 3. Set Python 3.10.19 as Local Version
+### 3. Set Python 3.10.13 as Local Version
 
-Navigate to your project directory and set Python 3.10.19 as the local version:
+Navigate to your project directory and set Python 3.10.13 as the local version:
 
 ```bash
-pyenv local 3.10.19
+pyenv local 3.10.13
 ```
 
 This creates a `.python-version` file in your project directory.
@@ -54,7 +54,7 @@ source ~/.bashrc
 
 ### 6. Verify Installation
 
-Check that Python 3.10.19 is active:
+Check that Python 3.10.13 is active:
 
 ```bash
 python --version
@@ -63,7 +63,7 @@ python --version
 You should see:
 
 ```
-Python 3.10.19
+Python 3.10.13
 ```
 
 ## Adaptation for Other Linux Distributions
@@ -131,9 +131,9 @@ Install the necessary build dependencies for your distribution (see adaptation s
 Ensure you're in the project directory where `.python-version` exists, or run:
 
 ```bash
-pyenv local 3.10.19
+pyenv local 3.10.13
 ```
 
 ## Next Steps
 
-Once Python 3.10.19 is installed and active, return to the main [README.md](README.md) to continue with the project setup.
+Once Python 3.10.13 is installed and active, return to the main [README.md](README.md) to continue with the project setup.
