@@ -73,7 +73,7 @@ To enable automatic linting on commit, uncomment the linter sections in `.pre-co
 Launch the Spark cluster with 1 master and 3 workers using Docker Compose:
 
 ```bash
-docker compose up --scale spark-worker=3
+docker compose up --build --scale spark-worker=3
 ```
 
 This will start:
@@ -84,7 +84,7 @@ This will start:
 To run in detached mode:
 
 ```bash
-docker compose up --scale spark-worker=3 -d
+docker compose up --build --scale spark-worker=3 -d
 ```
 
 ### 5. Verify the Cluster
