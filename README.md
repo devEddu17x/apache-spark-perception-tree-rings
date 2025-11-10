@@ -121,6 +121,28 @@ When connecting to the Spark cluster from your local machine, use:
 - **Master URL**: `spark://localhost:7077`
 - **Driver Host IP**: Your Docker bridge IP (typically `172.26.0.1`)
 
+#### Setting the Spark Master IP
+
+The connection script reads the driver host IP from the `SPARK_MASTER_IP` environment variable. To set it:
+
+1. Find your Docker bridge IP:
+   ```bash
+   ip addr show docker0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1
+   ```
+
+2. Set the environment variable (replace with your actual IP):
+   ```bash
+   export SPARK_MASTER_IP="172.26.0.1"
+   ```
+
+3. **Optional**: Add it to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.) for persistence:
+   ```bash
+   echo 'export SPARK_MASTER_IP="172.26.0.1"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+If the environment variable is not set, the connection script will default to `172.26.0.1`.
+
 Example connection code:
 
 ```python
