@@ -9,6 +9,8 @@ services:
       - "7077:7077"
     volumes:
       - ./data:/opt/spark/data
+    env_file:
+      - ./.env
 
   spark-worker:
     build: .
@@ -21,3 +23,5 @@ services:
       - SPARK_WORKER_MEMORY=2g
     volumes:
       - ./data:/opt/spark/data
+    env_file:
+      - ./.env
