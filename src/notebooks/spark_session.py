@@ -6,7 +6,9 @@ to the distributed cluster in Docker.
 from pyspark.sql import SparkSession
 import socket
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def get_spark_session(app_name="Spark Application"):
     """
@@ -26,7 +28,7 @@ def get_spark_session(app_name="Spark Application"):
     
     # 2. Driver Host IP (Laptop's IP on the Docker bridge network)
     # Read from environment variable, fallback to default if not set
-    driver_host_ip = os.environ.get("SPARK_MASTER_IP", "172.26.0.1")
+    driver_host_ip = os.getenv("SPARK_MASTER_IP", "172.26.0.1")
     
     print(f"Attempting to connect to master at: {master_url}")
     print(f"Will announce driver host IP as: {driver_host_ip}")
