@@ -13,6 +13,7 @@ ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
 ACCESS_KEY = os.getenv("CLOUDFLARE_ACCESS_KEY")
 SECRET_KEY = os.getenv("CLOUDFLARE_SECRET_KEY")
 BUCKET_NAME = os.getenv("CLOUDFLARE_BUCKET_NAME")
+BASE_DOMAIN = os.getenv("BASE_DOMAIN")
 
 # Build the Endpoint URL
 ENDPOINT_URL = f"https://{ACCOUNT_ID}.r2.cloudflarestorage.com"
