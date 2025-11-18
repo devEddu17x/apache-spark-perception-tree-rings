@@ -34,6 +34,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
       ZOOKEEPER_4LW_COMMANDS_WHITELIST: srvr,mntr,ruok,stat
+      KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
     ports:
       - 22181:2181
     volumes:
@@ -55,6 +56,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
       ZOOKEEPER_4LW_COMMANDS_WHITELIST: srvr,mntr,ruok,stat
+      KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
     ports:
       - 32181:2181
     volumes:
@@ -76,6 +78,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
       ZOOKEEPER_4LW_COMMANDS_WHITELIST: srvr,mntr,ruok,stat
+      KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
     ports:
       - 42181:2181
     volumes:
@@ -109,6 +112,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
@@ -135,6 +139,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
@@ -162,6 +167,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
