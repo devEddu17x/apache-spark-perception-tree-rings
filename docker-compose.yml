@@ -113,6 +113,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: kafka-1
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
@@ -140,6 +142,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: kafka-2 
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
@@ -168,11 +172,31 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: kafka-3
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 10s
       retries: 5
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:v0.7.2
+    ports:
+      - 8090:8080
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "Kafka UI"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka-1:9092,kafka-2:9092,kafka-3:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181"
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+      JAVA_OPTS: "-Xmx512M -Xms256M"
 
 volumes:
   zookeeper-1-data:
