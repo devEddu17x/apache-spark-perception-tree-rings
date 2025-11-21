@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender1
 
-RUN pip install opencv-python pandas boto3
+RUN pip install opencv-python pandas boto3 kafka-python==2.0.2
 
 RUN mkdir -p /opt/spark/data && chown -R spark:spark /opt/spark/data
 
