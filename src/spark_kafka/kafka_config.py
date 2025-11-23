@@ -6,10 +6,12 @@ load_dotenv()
 
 class KafkaConfig:
     def __init__(self):
-        self.bootstrap_servers = os.getenv(
+        bootstrap_servers = os.getenv(
             'KAFKA_BOOTSTRAP_SERVERS', 
             'localhost:29092,localhost:39092,localhost:49092'
         )
+        print(f"Bootstrap servers: {bootstrap_servers}" )
+        self.bootstrap_servers = bootstrap_servers
         self.ingestion_topic = os.getenv('KAFKA_INGESTION_TOPIC', 'image-ingestion')
         self.results_topic = os.getenv('KAFKA_RESULTS_TOPIC', 'processing-results')
         self.group_id = os.getenv('KAFKA_GROUP_ID', 'spark-image-processor')
@@ -18,7 +20,7 @@ class KafkaConfig:
         return {
             'kafka.bootstrap.servers': self.bootstrap_servers,
             'subscribe': self.ingestion_topic,
-            'startingOffsets': 'latest',
+            'startingOffsets': 'earliest',
             'failOnDataLoss': 'false',
             'kafka.group.id': self.group_id
         }
