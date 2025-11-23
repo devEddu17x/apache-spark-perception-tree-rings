@@ -1,13 +1,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json, to_json, struct
 from pyspark.sql.types import StructType, StructField, StringType, TimestampType
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from spark_session import get_spark_session
 
-from spark_kafka.kafka_config import get_kafka_config
-from notebooks.spark_session import get_spark_session
+from kafka_config import get_kafka_config
 
 
 MESSAGE_SCHEMA = StructType([
@@ -20,17 +17,16 @@ MESSAGE_SCHEMA = StructType([
 
 class SparkKafkaStreamProcessor:
     def __init__(self, app_name="SparkKafkaImageProcessor"):
-        self.spark = self._create_spark_session_with_kafka(app_name)
+        kafka_package = "org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.0"       
+        extra_conf = {
+            "spark.jars.packages": kafka_package,
+            "spark.sql.shuffle.partitions": "4"
+        }
+        
+        self.spark = get_spark_session(app_name, extra_conf)
         self.kafka_config = get_kafka_config()
         self.streaming_query = None
-    
-    def _create_spark_session_with_kafka(self, app_name):
-        spark = get_spark_session(app_name)
-        
-        spark.sparkContext.setLogLevel("WARN")
-        spark.conf.set("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0")
-        
-        return spark
+        self.spark.sparkContext.setLogLevel("WARN")
         
     def create_kafka_stream(self):
         kafka_df = self.spark \
