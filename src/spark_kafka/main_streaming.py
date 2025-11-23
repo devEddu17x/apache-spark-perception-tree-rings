@@ -31,12 +31,16 @@ from spark_kafka.kafka_config import get_kafka_config
 from vision_engine.mock_processor import process_image
 
 
-# Schema for incoming Kafka messages
+# Schema for incoming Kafka messages (matches IngestionPayload interface)
 MESSAGE_SCHEMA = StructType([
     StructField("jobId", StringType(), False),
     StructField("file", StringType(), False),
     StructField("timestamp", StringType(), False),
-    StructField("metadata", StringType(), True)
+    StructField("clientId", StringType(), False),
+    StructField("metadata", StructType([
+        StructField("coordinatesX", DoubleType(), False),
+        StructField("coordinatesY", DoubleType(), False)
+    ]), False)
 ])
 
 
@@ -114,9 +118,15 @@ def main():
         
         # Apply UDF to process each message
         # This happens in a distributed manner across workers
+        # Pass clientId and metadata to preserve original data
         processed_df = parsed_df.withColumn(
             "result",
-            process_udf(col("jobId"), col("file"))
+            process_udf(
+                col("jobId"), 
+                col("file"),
+                col("clientId"),
+                col("metadata")
+            )
         )
         
         # Select only the result column and flatten it
