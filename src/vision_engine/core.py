@@ -44,19 +44,19 @@ class BaseVisionAlgorithm(ABC):
                 # Load model ONCE per partition
                 self.model = tf.keras.models.load_model('my_model.h5')
             
-            def process(self, image_numpy, metadata):
+            def process(self, image_numpy, coordinates):
                 predictions = self.model.predict(image_numpy)
                 return {"detections": predictions.tolist()}
     """
     
     @abstractmethod
-    def process(self, image_numpy: np.ndarray, metadata: dict) -> dict:
+    def process(self, image_numpy: np.ndarray, coordinates: tuple) -> dict:
         """
         Process an image and return results.
         
         Args:
             image_numpy: OpenCV image as numpy array (BGR format)
-            metadata: Original metadata from ingestion payload
+            coordinates: Tuple (x, y) extracted from original metadata
             
         Returns:
             dict: Algorithm-specific results. Can include:
@@ -218,6 +218,20 @@ class VisionPipeline:
             if image is None:
                 raise Exception(f"Failed to download image from {file_url}")
             
+            # Extract coordinates as explicit tuple (first-class citizens)
+            # Note: metadata can be a Spark Row object (doesn't have .get())
+            coordinates = (0.0, 0.0)  # Default
+            
+            if metadata:
+                try:
+                    # Try bracket notation (works for both dict and Row)
+                    coord_x = metadata['coordinatesX'] if metadata['coordinatesX'] is not None else 0.0
+                    coord_y = metadata['coordinatesY'] if metadata['coordinatesY'] is not None else 0.0
+                    coordinates = (coord_x, coord_y)
+                except (KeyError, TypeError):
+                    # Fallback to default if keys don't exist
+                    coordinates = (0.0, 0.0)
+            
             # Execute all algorithms and accumulate results
             results = {}
             
@@ -231,8 +245,8 @@ class VisionPipeline:
                 print(f"  🔄 Running {algo_name}...")
                 
                 try:
-                    # Execute algorithm
-                    algo_result = algo.process(image, metadata)
+                    # Execute algorithm with explicit coordinates
+                    algo_result = algo.process(image, coordinates)
                     
                     # Check for visual output
                     if '_visual_output' in algo_result:
