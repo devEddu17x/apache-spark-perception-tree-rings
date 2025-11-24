@@ -3,13 +3,18 @@ FROM apache/spark:4.0.1-java21-python3
 USER root
 
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1
+    curl \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install opencv-python pandas boto3 kafka-python==2.0.2
+RUN pip install --no-cache-dir \
+    opencv-python-headless \
+    numpy \
+    pandas \
+    boto3 \
+    kafka-python==2.0.2 \
+    requests \
+    python-dotenv
 
 RUN mkdir -p /opt/spark/data && chown -R spark:spark /opt/spark/data
 
