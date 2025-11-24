@@ -38,13 +38,13 @@ class UnsharpMasking(BaseVisionAlgorithm):
         self.threshold = 0  # Minimum contrast threshold
         print("  ✅ Unsharp Masking initialized")
     
-    def process(self, image_numpy: np.ndarray, metadata: dict) -> dict:
+    def process(self, image_numpy: np.ndarray, coordinates: tuple) -> dict:
         """
         Apply unsharp masking to enhance image sharpness.
         
         Args:
             image_numpy: Input image as numpy array
-            metadata: Original metadata (not used in this algorithm)
+            coordinates: Tuple (x, y) from original metadata (not used in this algorithm)
         
         Returns:
             dict: Processing status and sharpened image
