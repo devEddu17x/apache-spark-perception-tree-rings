@@ -151,11 +151,8 @@ def process_batch(df, batch_id, spark, kafka_config):
             schema
         )
         
-        print("\nResults to write:")
-        results_df.show(truncate=False)
-        
         # Write to Kafka
-        # Note: Kafka expects a 'value' column (String or Binary)
+        # IMPORTANT: Don't call .show() before .save() - it triggers duplicate execution!
         results_df.write \
             .format("kafka") \
             .options(**kafka_config.get_output_kafka_options()) \
