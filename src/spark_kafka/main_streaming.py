@@ -1,24 +1,29 @@
 """
-Spark Kafka Streaming with UDF-based Processing
+Spark Kafka Streaming with Production Vision Pipeline
 
-This module implements a distributed Spark Structured Streaming pipeline that:
-1. Reads messages from Kafka (image processing jobs)
-2. Applies a UDF to process each message in the workers (distributed)
-3. Writes results back to Kafka (no collect() anti-pattern)
+This module implements a production-grade distributed image processing pipeline using:
+- foreachBatch for batch-level control
+- mapPartitions for efficient resource management
+- Strategy pattern for extensible algorithm design
+- Per-algorithm visual outputs with automatic R2 upload
 
 Architecture:
-- Uses UDFs for distributed processing (runs on workers, not driver)
-- Avoids foreachBatch + collect() anti-pattern
-- Writes directly to Kafka using writeStream
-- Maintains checkpoints for fault tolerance
+- VisionPipeline is instantiated ONCE per partition (not per row)
+- Heavy resources (R2 client, CNN models) initialized once per partition
+- Results are flexible JSON structures (not rigid Spark schemas)
+- Output is a single String column for maximum flexibility
+
+Key Performance Optimizations:
+- No UDF overhead
+- One-time resource initialization per partition
+- Batch processing with RDD mapPartitions
+- Direct Kafka write with checkpoint support
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_json, struct, udf
-from pyspark.sql.types import (
-    StructType, StructField, StringType, IntegerType, 
-    DoubleType, LongType
-)
+from pyspark.sql.functions import col, from_json
+from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+import json
 
 import sys
 import os
@@ -28,7 +33,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from spark_kafka.spark_session import get_spark_session
 from spark_kafka.kafka_config import get_kafka_config
-from vision_engine.mock_processor import process_image
 
 
 # Schema for incoming Kafka messages (matches IngestionPayload interface)
@@ -44,24 +48,122 @@ MESSAGE_SCHEMA = StructType([
 ])
 
 
-# Schema for UDF return value (matches ResultPayload TypeScript interface)
-RESULT_SCHEMA = StructType([
-    StructField("jobId", StringType(), False),
-    StructField("clientId", StringType(), False),
-    StructField("status", StringType(), False),
-    StructField("timestamp", StringType(), False),
-    StructField("data", StructType([
-        StructField("originalUrl", StringType(), False),
-        StructField("processedUrl", StringType(), False),
-        StructField("ringsCount", IntegerType(), False),
-        StructField("metadata", StructType([
-            StructField("coordinatesX", DoubleType(), False),
-            StructField("coordinatesY", DoubleType(), False),
-            StructField("processingTimeMs", IntegerType(), False)
-        ]), False)
-    ]), False),
-    StructField("error", StringType(), True)
-])
+def process_partition(iterator):
+    """
+    Process a partition of data using VisionPipeline.
+    
+    CRITICAL: VisionPipeline is initialized ONCE per partition (outside the loop).
+    This ensures:
+    - R2 client is created once per partition
+    - Algorithm models are loaded once per partition
+    - Maximum efficiency for distributed processing
+    
+    This function runs on Spark workers, not on the driver.
+    
+    Args:
+        iterator: Iterator over Row objects in this partition
+        
+    Yields:
+        str: JSON-serialized result for each processed job
+    """
+    # Import here to ensure it runs on workers
+    from vision_engine.core import VisionPipeline
+    
+    # ✅ CRITICAL: Initialize pipeline ONCE per partition (not per row!)
+    pipeline = VisionPipeline()
+    
+    # Process each row in the partition
+    for row in iterator:
+        try:
+            # Convert Row to dict
+            row_dict = row.asDict()
+            
+            # Process the job
+            result = pipeline.process_job(row_dict)
+            
+            # Serialize to JSON string
+            yield json.dumps(result)
+            
+        except Exception as e:
+            # Handle row-level errors
+            print(f"❌ Error processing row: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Yield error result
+            error_result = {
+                "jobId": row_dict.get('jobId', 'unknown'),
+                "clientId": row_dict.get('clientId', 'unknown'),
+                "status": "FAILED",
+                "timestamp": "",
+                "data": {
+                    "originalUrl": row_dict.get('file', ''),
+                    "metadata": row_dict.get('metadata', {}),
+                    "results": {}
+                },
+                "error": str(e)
+            }
+            yield json.dumps(error_result)
+
+
+def process_batch(df, batch_id, spark, kafka_config):
+    """
+    Process a batch of data using mapPartitions.
+    
+    This is the foreachBatch handler that:
+    1. Converts DataFrame to RDD
+    2. Applies mapPartitions for efficient processing
+    3. Converts results back to DataFrame
+    4. Writes to Kafka
+    
+    Args:
+        df: DataFrame with parsed Kafka messages
+        batch_id: Batch identifier
+        spark: SparkSession instance
+        kafka_config: Kafka configuration object
+    """
+    if df.isEmpty():
+        print(f"Batch {batch_id}: No messages to process")
+        return
+    
+    print(f"\n{'='*60}")
+    print(f"Processing Batch {batch_id}")
+    print(f"{'='*60}\n")
+    
+    # Show incoming data
+    print("Incoming messages:")
+    df.show(truncate=False)
+    
+    # Convert to RDD and apply mapPartitions
+    # This ensures VisionPipeline is initialized once per partition
+    results_rdd = df.rdd.mapPartitions(process_partition)
+    
+    # Check if RDD is empty
+    if not results_rdd.isEmpty():
+        # Convert RDD back to DataFrame with single String column
+        # This is the key to flexible JSON output!
+        schema = StructType([
+            StructField("value", StringType(), False)
+        ])
+        
+        results_df = spark.createDataFrame(
+            results_rdd.map(lambda x: (x,)),  # Wrap string in tuple
+            schema
+        )
+        
+        print("\nResults to write:")
+        results_df.show(truncate=False)
+        
+        # Write to Kafka
+        # Note: Kafka expects a 'value' column (String or Binary)
+        results_df.write \
+            .format("kafka") \
+            .options(**kafka_config.get_output_kafka_options()) \
+            .save()
+        
+        print(f"✅ Batch {batch_id} processed and written to Kafka\n")
+    else:
+        print(f"⚠️  Batch {batch_id} produced no results\n")
 
 
 def create_spark_session():
@@ -72,17 +174,46 @@ def create_spark_session():
         "spark.sql.shuffle.partitions": "4"
     }
     
-    spark = get_spark_session("SparkKafkaUDFProcessor", extra_conf)
+    spark = get_spark_session("SparkVisionPipeline", extra_conf)
     spark.sparkContext.setLogLevel("WARN")
     
     return spark
+
+
+def create_kafka_stream(spark, kafka_config):
+    """
+    Create Kafka stream and parse messages.
+    
+    Args:
+        spark: SparkSession instance
+        kafka_config: Kafka configuration object
+        
+    Returns:
+        DataFrame: Parsed messages ready for processing
+    """
+    # Read from Kafka
+    kafka_df = spark \
+        .readStream \
+        .format("kafka") \
+        .options(**kafka_config.get_spark_kafka_options()) \
+        .load()
+    
+    # Parse JSON messages
+    messages_df = kafka_df.selectExpr("CAST(value AS STRING) as json_string")
+    
+    parsed_df = messages_df \
+        .select(from_json(col("json_string"), MESSAGE_SCHEMA).alias("data")) \
+        .select("data.*")
+    
+    return parsed_df
 
 
 def main():
     """Main streaming pipeline orchestration."""
     
     print("\n" + "="*60)
-    print("Spark Kafka Streaming with UDF-based Processing")
+    print("Spark Vision Pipeline - Production Architecture")
+    print("foreachBatch + mapPartitions + Strategy Pattern")
     print("="*60 + "\n")
     
     # Initialize Spark and Kafka config
@@ -94,64 +225,26 @@ def main():
     print(f"🔗 Bootstrap servers: {kafka_config.bootstrap_servers}\n")
     
     try:
-        # Read from Kafka
-        kafka_df = spark \
-            .readStream \
-            .format("kafka") \
-            .options(**kafka_config.get_spark_kafka_options()) \
-            .load()
-        
-        # Parse JSON messages
-        messages_df = kafka_df.selectExpr("CAST(value AS STRING) as json_string")
-        
-        parsed_df = messages_df \
-            .select(from_json(col("json_string"), MESSAGE_SCHEMA).alias("data")) \
-            .select("data.*")
+        # Create Kafka stream
+        stream_df = create_kafka_stream(spark, kafka_config)
         
         print("✅ Kafka stream created successfully")
+        print("✅ Using foreachBatch + mapPartitions architecture")
+        print("✅ VisionPipeline will initialize once per partition\n")
         
-        # Register UDF for distributed processing
-        # This runs on workers, not on the driver!
-        process_udf = udf(process_image, RESULT_SCHEMA)
-        
-        print("✅ UDF registered: process_image")
-        
-        # Apply UDF to process each message
-        # This happens in a distributed manner across workers
-        # Pass clientId and metadata to preserve original data
-        processed_df = parsed_df.withColumn(
-            "result",
-            process_udf(
-                col("jobId"), 
-                col("file"),
-                col("clientId"),
-                col("metadata")
-            )
-        )
-        
-        # Select only the result column and flatten it
-        result_df = processed_df.select("result.*")
-        
-        # Convert result to JSON for Kafka value field
-        output_df = result_df.select(
-            to_json(struct("*")).alias("value")
-        )
-        
-        print("✅ Processing pipeline configured")
-        
-        # Write to Kafka (no foreachBatch, no collect!)
-        # This is the correct way to use Spark Structured Streaming
-        checkpoint_location = "/tmp/spark-checkpoint/kafka-udf-processor"
+        # Checkpoint location
+        checkpoint_location = "/tmp/spark-checkpoint/vision-pipeline"
         
         print(f"💾 Checkpoint location: {checkpoint_location}")
         print("\n🚀 Starting streaming query...\n")
         
-        query = output_df \
+        # Use foreachBatch for batch-level control
+        # This allows us to use RDD mapPartitions for efficient processing
+        query = stream_df \
             .writeStream \
-            .format("kafka") \
-            .options(**kafka_config.get_output_kafka_options()) \
-            .option("checkpointLocation", checkpoint_location) \
+            .foreachBatch(lambda df, batch_id: process_batch(df, batch_id, spark, kafka_config)) \
             .outputMode("append") \
+            .option("checkpointLocation", checkpoint_location) \
             .start()
         
         print("✅ Streaming query started successfully!")
@@ -175,7 +268,7 @@ def main():
         spark.stop()
         print("✅ Spark session stopped")
         print("\n" + "="*60)
-        print("Streaming pipeline terminated")
+        print("Vision Pipeline Terminated")
         print("="*60 + "\n")
 
 
