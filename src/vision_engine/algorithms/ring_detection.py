@@ -42,13 +42,13 @@ class RingDetection(BaseVisionAlgorithm):
         # or
         # self.model = torch.load('ring_detector.pth')
     
-    def process(self, image_numpy: np.ndarray, metadata: dict) -> dict:
+    def process(self, image_numpy: np.ndarray, coordinates: tuple) -> dict:
         """
         Detect and count tree rings in the image.
         
         Args:
             image_numpy: Input image as numpy array
-            metadata: Original metadata (may contain coordinates, etc.)
+            coordinates: Tuple (x, y) from original metadata
         
         Returns:
             dict: Detection results with count, confidence, and visual output
