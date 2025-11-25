@@ -107,11 +107,12 @@ class VisionPipeline:
         
         # Import and instantiate algorithms
         # This happens once per partition, not per image
-        from vision_engine.algorithms import RingDetection, UnsharpMasking
+        from vision_engine.algorithms import RingDetection, UnsharpMasking, PolarRingDetection
         
         self.algorithms = [
             RingDetection(),
-            UnsharpMasking()
+            UnsharpMasking(),
+            PolarRingDetection()  # Real polar coordinate ring detection
         ]
         
         print(f"✅ VisionPipeline initialized with {len(self.algorithms)} algorithms")
