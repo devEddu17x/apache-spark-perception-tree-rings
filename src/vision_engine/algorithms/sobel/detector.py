@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Dict
 
-from .roi import create_trunk_mask
 from .kernels import apply_sobel
 
 
@@ -20,21 +19,17 @@ class SobelRingDetector:
     def detect(
         self, image: np.ndarray, center: Tuple[int, int], draw_output: bool = True
     ) -> Dict:
+        h, w = image.shape[:2]
         center_x, center_y = int(center[0]), int(center[1])
 
         # 1. Escala de grises
         gray = self._to_grayscale(image)
 
-        # 2. Máscara ROI (forma real del tronco)
-        mask, max_radius = create_trunk_mask(
-            image, center_x, center_y, self.min_radius
-        )
+        # 2. Sobel (magnitud del gradiente)
+        magnitude = apply_sobel(gray)
 
-        # 3. Sobel
-        _, _, magnitude = apply_sobel(gray)
-
-        # Aplicar máscara
-        magnitude = magnitude * (mask / 255.0)
+        # 3. Calcular max_radius (distancia al borde más cercano)
+        max_radius = min(center_x, w - center_x, center_y, h - center_y) - 10
 
         # 4. Detectar anillos en perfil radial promedio
         radii = self._detect_rings_radial(magnitude, center_x, center_y, max_radius)
@@ -48,7 +43,7 @@ class SobelRingDetector:
         # 5. Generar imagen de salida si se solicita
         if draw_output:
             result["_visual_output"] = self._draw_results(
-                image, radii, center_x, center_y, mask
+                image, radii, center_x, center_y
             )
 
         return result
@@ -69,25 +64,19 @@ class SobelRingDetector:
 
         # Crear perfil radial promediando todos los ángulos
         profile = np.zeros(len(radii_range), dtype=np.float32)
-        counts = np.zeros(len(radii_range), dtype=np.float32)
-
         h, w = magnitude.shape
         angles = np.linspace(0, 2 * np.pi, num_angles, endpoint=False)
 
         for angle in angles:
             cos_a, sin_a = np.cos(angle), np.sin(angle)
-
             for i, r in enumerate(radii_range):
                 x = int(center_x + r * cos_a)
                 y = int(center_y + r * sin_a)
-
                 if 0 <= x < w and 0 <= y < h:
                     profile[i] += magnitude[y, x]
-                    counts[i] += 1
 
-        # Promediar
-        counts = np.maximum(counts, 1)
-        profile = profile / counts
+        # Promediar (siempre hay 360 muestras por radio)
+        profile = profile / num_angles
 
         # Normalizar
         if np.max(profile) > 0:
@@ -122,22 +111,16 @@ class SobelRingDetector:
         radii: List[int],
         center_x: int,
         center_y: int,
-        mask: np.ndarray,
     ) -> np.ndarray:
         output = image.copy()
 
-        # Contorno del ROI real
-        contours, _ = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-        if contours:
-            cv2.drawContours(output, contours, -1, (255, 255, 0), 2)
-
-        # Centro
+        # Centro (punto rojo)
         cv2.circle(output, (center_x, center_y), 5, (0, 0, 255), -1)
+        
+        # Radio mínimo (círculo amarillo)
         cv2.circle(output, (center_x, center_y), self.min_radius, (0, 255, 255), 1)
 
-        # Anillos detectados
+        # Anillos detectados (gradiente de color)
         for i, radius in enumerate(radii):
             ratio = i / max(len(radii), 1)
             color = (int(255 * ratio), int(255 * (1 - ratio)), 0)

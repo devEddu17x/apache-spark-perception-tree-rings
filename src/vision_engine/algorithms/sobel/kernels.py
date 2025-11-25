@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Tuple
 
 
 SOBEL_X = np.array([
@@ -39,15 +38,8 @@ def convolve2d(image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     return output
 
 
-def apply_sobel(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    # Suavizar primero
+def apply_sobel(image: np.ndarray) -> np.ndarray:
     smoothed = convolve2d(image, GAUSSIAN_3x3)
-    
-    # Gradientes de Sobel
     gx = convolve2d(smoothed, SOBEL_X)
     gy = convolve2d(smoothed, SOBEL_Y)
-    
-    # Magnitud
-    magnitude = np.sqrt(gx**2 + gy**2)
-    
-    return gx, gy, magnitude
+    return np.sqrt(gx**2 + gy**2)
