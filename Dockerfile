@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir \
     opencv-python-headless \
     numpy \
     pandas \
+    scipy \
     boto3 \
     kafka-python==2.0.2 \
     requests \
