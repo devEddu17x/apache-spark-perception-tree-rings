@@ -7,12 +7,13 @@ All algorithms inherit from BaseVisionAlgorithm and implement the process() meth
 Current Algorithms:
 - RingDetection: Simulates tree ring detection with CNN (mock)
 - UnsharpMasking: Real OpenCV filter for image sharpening
+- PolarRingDetection: Real polar coordinate transformation for ring detection
 
 To add new algorithms:
 1. Create a new file in this directory (e.g., defect_detection.py)
 2. Create a class that inherits from BaseVisionAlgorithm
 3. Load heavy models in __init__ (runs once per partition)
-4. Implement process(image_numpy, metadata) -> dict
+4. Implement process(image_numpy, coordinates) -> dict
 5. Optionally return '_visual_output' key with processed image
 6. Import and export the class in this __init__.py file
 
@@ -22,5 +23,7 @@ Example:
 
 from .ring_detection import RingDetection
 from .unsharp_masking import UnsharpMasking
+from .polar_coordinates import PolarRingDetection
 
-__all__ = ['RingDetection', 'UnsharpMasking']
+__all__ = ['RingDetection', 'UnsharpMasking', 'PolarRingDetection']
+
