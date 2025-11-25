@@ -8,6 +8,7 @@ Current Algorithms:
 - RingDetection: Simulates tree ring detection with CNN (mock)
 - UnsharpMasking: Real OpenCV filter for image sharpening
 - PolarRingDetection: Real polar coordinate transformation for ring detection
+- SobelRingDetection: Manual Sobel edge detection for ring detection
 
 To add new algorithms:
 1. Create a new file in this directory (e.g., defect_detection.py)
@@ -24,6 +25,7 @@ Example:
 from .ring_detection import RingDetection
 from .unsharp_masking import UnsharpMasking
 from .polar_coordinates import PolarRingDetection
+from .sobel import SobelRingDetection
 
-__all__ = ['RingDetection', 'UnsharpMasking', 'PolarRingDetection']
+__all__ = ['RingDetection', 'UnsharpMasking', 'PolarRingDetection', 'SobelRingDetection']
 
