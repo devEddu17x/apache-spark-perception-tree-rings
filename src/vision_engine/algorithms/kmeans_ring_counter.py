@@ -434,9 +434,11 @@ class KMeansRingCounter:
         return mask
     
     def crear_visualizacion(self, img: np.ndarray, centro: Tuple[int, int], 
-                           radios_anillos: List[float], num_anillos: int, 
-                           k_optimo: int) -> np.ndarray:
-        """Visualización con colores mejorados."""
+                           radios_anillos: List[float], num_anillos: int) -> np.ndarray:
+        """
+        Crea visualización simple: solo tronco con anillos dibujados.
+        Toda la información de análisis va en el JSON de respuesta.
+        """
         img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         
         cx, cy = centro
@@ -451,59 +453,17 @@ class KMeansRingCounter:
             )
             cv2.circle(img_color, (int(cx), int(cy)), int(radio), color_bgr, 2)
         
-        # Centro marcado
+        # Dibujar centro con cruz roja
         cv2.drawMarker(img_color, (int(cx), int(cy)), (0, 0, 255),
                       markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
         
-        # Panel lateral
-        h, w = img_color.shape[:2]
-        info_width = 300
-        panel = np.ones((h, info_width, 3), dtype=np.uint8) * 255
-        
-        # Título principal
+        # Texto simple en la esquina superior izquierda
         titulo = f"Anillos: {num_anillos}"
         cv2.putText(img_color, titulo, (10, 30), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         
-        # Info detallada en panel
-        y_pos = 40
-        line_height = 25
-        
-        cv2.putText(panel, "ANALISIS OPTIMIZADO:", (10, y_pos), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-        y_pos += line_height + 10
-        
-        cv2.putText(panel, f"Anillos: {num_anillos}", (10, y_pos), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
-        y_pos += line_height
-        
-        cv2.putText(panel, f"K optimo: {k_optimo}", (10, y_pos), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
-        y_pos += line_height
-        
-        cv2.putText(panel, f"Clusters validos: {len(radios_anillos)}", (10, y_pos), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
-        y_pos += line_height + 10
-        
-        cv2.putText(panel, "RADIOS (px):", (10, y_pos), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-        y_pos += line_height
-        
-        for i, r in enumerate(radios_anillos[:10], 1):
-            texto = f"{i:2d}.  {r:6.1f}"
-            cv2.putText(panel, texto, (10, y_pos), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 1)
-            y_pos += line_height - 5
-            
-            if y_pos > h - 50:
-                break
-        
-        if len(radios_anillos) > 10:
-            cv2.putText(panel, f"...+{len(radios_anillos) - 10} mas", (10, y_pos), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 1)
-        
-        resultado = np.hstack([img_color, panel])
-        return resultado
+        return img_color
+    
     
     def process(self, image_numpy: np.ndarray, coordinates: tuple = None) -> dict:
         """
@@ -585,19 +545,27 @@ class KMeansRingCounter:
                     'radios_anillos': []
                 }
             
-            # Visualización
+            # Visualización simple (solo imagen con anillos)
             img_visual = self.crear_visualizacion(
-                img_gray, centro, mejor['radios'], 
-                mejor['n_anillos'], mejor['k']
+                img_gray, centro, mejor['radios'], mejor['n_anillos']
             )
             
+            # Toda la información de análisis va en el JSON
             return {
                 'num_anillos': int(mejor['n_anillos']),
                 'k_optimo': int(mejor['k']),
                 'centro': [int(centro[0]), int(centro[1])],
                 'radios_anillos': [float(r) for r in mejor['radios']],
-                '_visual_output': img_visual,
-                'radio_max_usado': float(radio_max_valido)
+                'clusters_validos': int(len(mejor['radios'])),
+                'radio_max_usado': float(radio_max_valido),
+                'radios_detalle': [
+                    {
+                        'anillo': int(i + 1),
+                        'radio_px': float(r)
+                    }
+                    for i, r in enumerate(mejor['radios'])
+                ],
+                '_visual_output': img_visual
             }
             
         except Exception as e:
