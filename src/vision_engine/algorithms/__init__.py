@@ -26,6 +26,6 @@ from .ring_detection import RingDetection
 from .unsharp_masking import UnsharpMasking
 from .polar_coordinates import PolarRingDetection
 from .sobel import SobelRingDetection
-
-__all__ = ['RingDetection', 'UnsharpMasking', 'PolarRingDetection', 'SobelRingDetection']
+from .autocorrelation_periodicity import AutocorrelationPeriodicity
+__all__ = ['RingDetection', 'UnsharpMasking', 'PolarRingDetection', 'SobelRingDetection', 'AutocorrelationPeriodicity']
 
