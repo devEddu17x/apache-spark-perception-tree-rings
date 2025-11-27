@@ -395,7 +395,7 @@ class KMeansRingCounter(BaseVisionAlgorithm):
                 return {
                     'num_anillos': 0,
                     'k_optimo': 0,
-                    'centro': list(centro),
+                    'centro': [int(centro[0]), int(centro[1])],  # Ensure ints
                     'radios_anillos': [],
                     'error': 'Muy pocos píxeles en ROI'
                 }
@@ -410,7 +410,7 @@ class KMeansRingCounter(BaseVisionAlgorithm):
                 return {
                     'num_anillos': 0,
                     'k_optimo': 0,
-                    'centro': list(centro),
+                    'centro': [int(centro[0]), int(centro[1])],  # Ensure ints
                     'radios_anillos': []
                 }
             
@@ -420,12 +420,12 @@ class KMeansRingCounter(BaseVisionAlgorithm):
             )
             
             return {
-                'num_anillos': mejor['n_anillos'],
-                'k_optimo': mejor['k'],
-                'centro': list(centro),
-                'radios_anillos': [float(r) for r in mejor['radios']],
+                'num_anillos': int(mejor['n_anillos']),  # Convert np.int64 to int
+                'k_optimo': int(mejor['k']),  # Convert np.int64 to int
+                'centro': [int(centro[0]), int(centro[1])],  # Ensure ints
+                'radios_anillos': [float(r) for r in mejor['radios']],  # Already converted
                 '_visual_output': img_visual,  # CLAVE ESPECIAL para imagen procesada
-                'radio_max_usado': float(radio_max_valido)
+                'radio_max_usado': float(radio_max_valido)  # Already converted
             }
             
         except Exception as e:
