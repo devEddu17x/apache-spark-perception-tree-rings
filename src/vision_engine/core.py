@@ -113,16 +113,18 @@ class VisionPipeline:
             PolarRingDetection,
             SobelRingDetection,
             AutocorrelationPeriodicity,
-            SecondDerivativeRingDetection
+            SecondDerivativeRingDetection,
+            KMeansRingCounter
         )
         
         self.algorithms = [
-            RingDetection(),
-            UnsharpMasking(),
+            # RingDetection(),
+            # UnsharpMasking(),
             PolarRingDetection(),  # Real polar coordinate ring detection
             SobelRingDetection(),   # Manual Sobel edge detection for ring detection
             AutocorrelationPeriodicity(),  # Autocorrelation periodicity detection
-            SecondDerivativeRingDetection()  # Second derivative ring detection
+            SecondDerivativeRingDetection(),  # Second derivative ring detection
+            KMeansRingCounter()
         ]
         
         print(f"✅ VisionPipeline initialized with {len(self.algorithms)} algorithms")
