@@ -9,6 +9,7 @@ Current Algorithms:
 - UnsharpMasking: Real OpenCV filter for image sharpening
 - PolarRingDetection: Real polar coordinate transformation for ring detection
 - SobelRingDetection: Manual Sobel edge detection for ring detection
+- SecondDerivativeRingDetection: Laplacian-based ring detection using zero-crossings
 
 To add new algorithms:
 1. Create a new file in this directory (e.g., defect_detection.py)
@@ -27,5 +28,14 @@ from .unsharp_masking import UnsharpMasking
 from .polar_coordinates import PolarRingDetection
 from .sobel import SobelRingDetection
 from .autocorrelation_periodicity import AutocorrelationPeriodicity
-__all__ = ['RingDetection', 'UnsharpMasking', 'PolarRingDetection', 'SobelRingDetection', 'AutocorrelationPeriodicity']
+from .second_derivative import SecondDerivativeRingDetection
+
+__all__ = [
+    'RingDetection',
+    'UnsharpMasking',
+    'PolarRingDetection',
+    'SobelRingDetection',
+    'AutocorrelationPeriodicity',
+    'SecondDerivativeRingDetection'
+]
 
