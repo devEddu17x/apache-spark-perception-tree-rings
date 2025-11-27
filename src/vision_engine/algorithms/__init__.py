@@ -29,6 +29,7 @@ from .polar_coordinates import PolarRingDetection
 from .sobel import SobelRingDetection
 from .autocorrelation_periodicity import AutocorrelationPeriodicity
 from .second_derivative import SecondDerivativeRingDetection
+from .kmeans_ring_counter import KMeansRingCounter
 
 __all__ = [
     'RingDetection',
@@ -36,6 +37,7 @@ __all__ = [
     'PolarRingDetection',
     'SobelRingDetection',
     'AutocorrelationPeriodicity',
-    'SecondDerivativeRingDetection'
+    'SecondDerivativeRingDetection',
+    'KMeansRingCounter'
 ]
 
