@@ -30,6 +30,7 @@ from .sobel import SobelRingDetection
 from .autocorrelation_periodicity import AutocorrelationPeriodicity
 from .second_derivative import SecondDerivativeRingDetection
 from .kmeans_ring_counter import KMeansRingCounter
+from .cnn_segmentation import CNNSegmentation
 
 __all__ = [
     'RingDetection',
@@ -38,6 +39,7 @@ __all__ = [
     'SobelRingDetection',
     'AutocorrelationPeriodicity',
     'SecondDerivativeRingDetection',
-    'KMeansRingCounter'
+    'KMeansRingCounter',
+    'CNNSegmentation'
 ]
 
