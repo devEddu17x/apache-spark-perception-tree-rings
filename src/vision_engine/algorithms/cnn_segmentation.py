@@ -278,13 +278,16 @@ class CNNSegmentation(BaseVisionAlgorithm):
         if (h, w) != original_size:
             mask_binary = cv2.resize(mask_binary, (original_size[1], original_size[0]))
         
+        # Save PURE mask (without dilation) for _mask_output
+        mask_pure = cv2.cvtColor(mask_binary, cv2.COLOR_GRAY2BGR)
+        
         # THICKEN LINES: Apply morphological dilation to make rings more visible
-        # This increases line thickness from 1-2 pixels to ~5-6 pixels
+        # This increases line thickness from 1-2 pixels to ~3-4 pixels
         kernel_size = 3  # Adjust this to control thickness (3=thin, 5=medium, 7=thick)
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
-        mask_binary = cv2.dilate(mask_binary, kernel, iterations=2)
+        mask_binary_dilated = cv2.dilate(mask_binary, kernel, iterations=2)
         
-        # Create visualization: Draw red rings on original image
+        # Create visualization: Draw green rings on original image
         # Convert original to BGR if needed
         if len(image_numpy.shape) == 2:
             # Grayscale to BGR
@@ -294,9 +297,9 @@ class CNNSegmentation(BaseVisionAlgorithm):
             img_visual = image_numpy.copy()
         
         # Overlay detected rings in bright green (0, 255, 0)
-        # Create green overlay where mask is white
+        # Create green overlay where mask is white (using DILATED mask)
         green_overlay = np.zeros_like(img_visual)
-        green_overlay[mask_binary > 127] = [0, 255, 0]  # BGR: Bright Green (Lime)
+        green_overlay[mask_binary_dilated > 127] = [0, 255, 0]  # BGR: Bright Green (Lime)
         
         # Blend: 70% original + 30% green overlay for visibility
         alpha = 0.7
@@ -315,5 +318,6 @@ class CNNSegmentation(BaseVisionAlgorithm):
             "processed_size": [int(h), int(w)],
             "mask_coverage": mask_coverage,
             "processing_time_seconds": float(elapsed),
-            "_visual_output": img_visual  # Original image with red rings overlay
+            "_visual_output": img_visual,  # Green overlay on original image
+            "_mask_output": mask_pure       # Pure binary mask (no dilation)
         }
