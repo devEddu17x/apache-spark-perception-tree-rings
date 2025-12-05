@@ -114,7 +114,8 @@ class VisionPipeline:
             SobelRingDetection,
             AutocorrelationPeriodicity,
             SecondDerivativeRingDetection,
-            KMeansRingCounter
+            KMeansRingCounter,
+            CNNSegmentation  # CNN with singleton pattern
         )
         
         self.algorithms = [
@@ -124,7 +125,8 @@ class VisionPipeline:
             SobelRingDetection(),   # Manual Sobel edge detection for ring detection
             AutocorrelationPeriodicity(),  # Autocorrelation periodicity detection
             SecondDerivativeRingDetection(),  # Second derivative ring detection
-            KMeansRingCounter()
+            KMeansRingCounter(),
+            CNNSegmentation()  # Shared model across partitions
         ]
         
         print(f"✅ VisionPipeline initialized with {len(self.algorithms)} algorithms")
