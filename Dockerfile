@@ -15,7 +15,8 @@ RUN pip install --no-cache-dir \
     boto3 \
     kafka-python==2.0.2 \
     requests \
-    python-dotenv
+    python-dotenv \
+    tensorflow==2.19.0
 
 RUN mkdir -p /opt/spark/data && chown -R spark:spark /opt/spark/data
 
