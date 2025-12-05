@@ -198,9 +198,17 @@ def create_kafka_stream(spark, kafka_config):
     # Parse JSON messages
     messages_df = kafka_df.selectExpr("CAST(value AS STRING) as json_string")
     
-    parsed_df = messages_df \
-        .select(from_json(col("json_string"), MESSAGE_SCHEMA).alias("data")) \
-        .select("data.*")
+    # Parse the Kafka messages
+    parsed_df = kafka_df.select(
+        from_json(col("value").cast("string"), MESSAGE_SCHEMA).alias("data")
+    ).select("data.*")
+    
+    # CRITICAL: Repartition to control CNN model loading
+    # With singleton pattern: 3 partitions = 3 models (one per worker)
+    # Without repartition: Could have 12+ partitions = memory issues
+    parsed_df = parsed_df.repartition(3)
+    
+    print(f"✅ Kafka stream configured with 3 partitions (optimized for CNN)")
     
     return parsed_df
 
