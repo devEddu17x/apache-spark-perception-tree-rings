@@ -45,7 +45,7 @@ def test_cnn_algorithm():
     
     # 2. Load test image
     print("\n2️⃣ Cargando imagen de prueba...")
-    test_image_url = "https://apache-spark-perception-tree-rings.edducode.me/raw/F02a.png"
+    test_image_url = "https://apache-spark-perception-tree-rings.edducode.me/raw/image-test.png"
     
     try:
         import requests
