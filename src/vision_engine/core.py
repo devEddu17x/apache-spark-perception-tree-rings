@@ -121,11 +121,11 @@ class VisionPipeline:
         self.algorithms = [
             # RingDetection(),
             # UnsharpMasking(),
-            PolarRingDetection(),  # Real polar coordinate ring detection
-            SobelRingDetection(),   # Manual Sobel edge detection for ring detection
-            AutocorrelationPeriodicity(),  # Autocorrelation periodicity detection
-            SecondDerivativeRingDetection(),  # Second derivative ring detection
-            KMeansRingCounter(),
+            # PolarRingDetection(),  # Real polar coordinate ring detection
+            # SobelRingDetection(),   # Manual Sobel edge detection for ring detection
+            # AutocorrelationPeriodicity(),  # Autocorrelation periodicity detection
+            # SecondDerivativeRingDetection(),  # Second derivative ring detection
+            # KMeansRingCounter(),
             CNNSegmentation()  # Shared model across partitions
         ]
         
@@ -263,17 +263,28 @@ class VisionPipeline:
                     # Execute algorithm with explicit coordinates
                     algo_result = algo.process(image, coordinates)
                     
-                    # Check for visual output
+                    # Handle visual output if present
                     if '_visual_output' in algo_result:
-                        visual_output = algo_result.pop('_visual_output')
+                        visual_img = algo_result.pop('_visual_output')
                         
                         # Upload to R2
-                        filename = f"{job_id}_{algo_key}.png"
-                        image_url = self._upload_result(visual_output, filename)
+                        visual_filename = f"{job_id}_{algo_key}.png"
+                        visual_url = self._upload_result(visual_img, visual_filename)
                         
                         # Add imageUrl to result
-                        algo_result['imageUrl'] = image_url
+                        algo_result['imageUrl'] = visual_url
                     
+                    # Handle mask output if present (CNN-specific)
+                    if '_mask_output' in algo_result:
+                        mask_img = algo_result.pop('_mask_output')
+                        
+                        # Upload to R2 with _mask suffix
+                        mask_filename = f"{job_id}_{algo_key}_mask.png"
+                        mask_url = self._upload_result(mask_img, mask_filename)
+                        
+                        # Add maskUrl to result
+                        algo_result['maskUrl'] = mask_url
+                            
                     # Add to results
                     results[algo_key] = algo_result
                     print(f"  ✅ {algo_name} completed")
