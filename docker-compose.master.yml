@@ -5,9 +5,9 @@ services:
     user: root
     command: bash -c "/opt/spark/sbin/start-master.sh && tail -f /opt/spark/logs/spark*.out"
     ports:
-      - "8080:8080"
-      - "7077:7077"
-      - "4040:4040"
+      - '8080:8080'
+      - '7077:7077'
+      - '4040:4040'
     environment:
       - PYTHONPATH=/opt/spark/src
     volumes:
