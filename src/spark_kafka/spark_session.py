@@ -23,8 +23,9 @@ def get_spark_session(app_name="Spark Application", extra_conf=None):
     Raises:
         Exception: If connection to the Spark cluster fails.
     """
-    master_url = "spark://localhost:7077"
-    driver_host_ip = os.getenv("SPARK_MASTER_IP", "172.26.0.1")
+    spark_master_ip = os.getenv("SPARK_MASTER_IP", "localhost")
+    master_url = f"spark://{spark_master_ip}:7077"
+    driver_host_ip = spark_master_ip
     
     print(f"Attempting to connect to master at: {master_url}")
     print(f"Will announce driver host IP as: {driver_host_ip}")

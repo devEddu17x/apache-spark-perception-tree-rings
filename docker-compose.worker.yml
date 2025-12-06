@@ -1,0 +1,17 @@
+services:
+  spark-worker:
+    image: 422228629090.dkr.ecr.us-east-1.amazonaws.com/perception-tree-rings:latest
+    container_name: spark-worker
+    user: root
+    command: bash -c "/opt/spark/sbin/start-worker.sh spark://${SPARK_MASTER_IP}:7077 && tail -f /opt/spark/logs/spark*.out"
+    environment:
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=6g
+      - PYTHONPATH=/opt/spark/src
+    volumes:
+      - ./data:/opt/spark/data
+      - ./src/spark_kafka:/opt/spark/src/spark_kafka
+      - ./src/vision_engine:/opt/spark/src/vision_engine
+    env_file:
+      - ./.env
+    restart: unless-stopped
