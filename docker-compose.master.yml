@@ -1,0 +1,19 @@
+services:
+  spark-master:
+    image: 422228629090.dkr.ecr.us-east-1.amazonaws.com/perception-tree-rings:latest
+    container_name: spark-master
+    user: root
+    command: bash -c "/opt/spark/sbin/start-master.sh && tail -f /opt/spark/logs/spark*.out"
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+      - "4040:4040"
+    environment:
+      - PYTHONPATH=/opt/spark/src
+    volumes:
+      - ./data:/opt/spark/data
+      - ./src/spark_kafka:/opt/spark/src/spark_kafka
+      - ./src/vision_engine:/opt/spark/src/vision_engine
+    env_file:
+      - ./.env
+    restart: unless-stopped
