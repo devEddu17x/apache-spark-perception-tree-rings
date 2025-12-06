@@ -1,6 +1,6 @@
 services:
   spark-master:
-    image: 422228629090.dkr.ecr.us-east-1.amazonaws.com/perception-tree-rings:latest
+    image: perception-tree-rings:latest
     container_name: spark-master
     user: root
     command: bash -c "/opt/spark/sbin/start-master.sh && tail -f /opt/spark/logs/spark*.out"
